@@ -9,6 +9,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Track whether a test cookie was recently set so we can detect failure
+_test_cookie_pending = False
+
 DB_PATH = Path(settings.BASE_DIR) / 'pytania_egzaminacyjne.db'
 QUESTION_LIMIT = 150
 QUIZ_DURATION_SECONDS = 150 * 60
@@ -27,6 +30,8 @@ def index(request):
     if 'quiz' not in request.session:
         # Set a test cookie to ensure the browser accepts cookies
         request.session.set_test_cookie()
+        global _test_cookie_pending
+        _test_cookie_pending = True
         questions = get_random_questions()
         request.session['quiz'] = {
             'questions': questions,
@@ -39,17 +44,27 @@ def index(request):
 
 
 def quiz_view(request):
+    global _test_cookie_pending
     quiz = request.session.get('quiz')
     if not quiz:
-        if not request.session.test_cookie_worked():
+        if _test_cookie_pending and not request.session.test_cookie_worked():
             logger.debug("Test cookie failed; cookies seem to be disabled.")
             if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
                 request.session.delete_test_cookie()
+            _test_cookie_pending = False
             return redirect('cookies_required')
+        _test_cookie_pending = False
         return redirect('index')
+
+    if _test_cookie_pending:
+        if not request.session.test_cookie_worked():
+            logger.debug(
+                "Test cookie failed during quiz; redirecting to warning page.")
             request.session.delete_test_cookie()
+            _test_cookie_pending = False
             return redirect('cookies_required')
         request.session.delete_test_cookie()
+        _test_cookie_pending = False
 
     elapsed = timezone.now().timestamp() - quiz['start_time']
     remaining = QUIZ_DURATION_SECONDS - elapsed
