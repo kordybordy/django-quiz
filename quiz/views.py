@@ -25,28 +25,31 @@ def get_random_questions():
     conn.close()
     return random.sample(all_questions, min(QUESTION_LIMIT, len(all_questions)))
 
-
 def index(request):
-    """Set a test cookie and redirect to cookie check."""
+    logger.debug("==> index: setting test cookie and redirecting to check_cookie")
     request.session.set_test_cookie()
     return redirect('check_cookie')
 
 
 def check_cookie(request):
-    """Verify that the browser accepted the test cookie before starting the quiz."""
     global _test_cookie_pending
 
+    logger.debug("==> check_cookie: entered")
+
     if not request.session.test_cookie_worked():
-        logger.debug("Test cookie failed; cookies seem to be disabled.")
+        logger.debug("==> check_cookie: test cookie FAILED")
         request.session.delete_test_cookie()
         _test_cookie_pending = False
         return redirect('cookies_required')
 
+    logger.debug("==> check_cookie: test cookie PASSED")
+
     request.session.delete_test_cookie()
     _test_cookie_pending = False
 
-    # Ciasteczka działają – utwórz quiz
+    # Utwórz quiz i zapisz w sesji
     questions = get_random_questions()
+    logger.debug(f"==> check_cookie: loaded {len(questions)} questions")
     request.session['quiz'] = {
         'questions': questions,
         'current': 0,
@@ -54,15 +57,21 @@ def check_cookie(request):
         'answers': [],
         'start_time': timezone.now().timestamp()
     }
+    request.session.modified = True
+    logger.debug("==> check_cookie: quiz saved to session")
+
     return redirect('quiz')
 
 
 def quiz_view(request):
     global _test_cookie_pending
+    logger.debug("==> quiz_view: entered")
+
     quiz = request.session.get('quiz')
     if not quiz:
+        logger.debug("==> quiz_view: NO quiz in session")
         if _test_cookie_pending and not request.session.test_cookie_worked():
-            logger.debug("Test cookie failed; cookies seem to be disabled.")
+            logger.debug("==> quiz_view: test cookie failed (pending)")
             if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
                 request.session.delete_test_cookie()
             _test_cookie_pending = False
@@ -70,15 +79,7 @@ def quiz_view(request):
         _test_cookie_pending = False
         return redirect('index')
 
-    if _test_cookie_pending:
-        if not request.session.test_cookie_worked():
-            logger.debug(
-                "Test cookie failed during quiz; redirecting to warning page.")
-            request.session.delete_test_cookie()
-            _test_cookie_pending = False
-            return redirect('cookies_required')
-        request.session.delete_test_cookie()
-        _test_cookie_pending = False
+    logger.debug(f"==> quiz_view: quiz found with {len(quiz['questions'])} questions")
 
     elapsed = timezone.now().timestamp() - quiz['start_time']
     remaining = QUIZ_DURATION_SECONDS - elapsed
