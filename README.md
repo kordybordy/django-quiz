@@ -8,7 +8,10 @@ This project contains a small Django application that serves a multiple-choice q
    ```bash
    pip install -r requirements.txt
    ```
-   The app uses cookie-based sessions, so you don't need to apply migrations.
+The app uses cookie-based sessions, so you don't need to apply migrations.
+Cookies must be enabled in the browser. If the test cookie set during
+initialization isn't returned, the application redirects to a page informing
+that cookies are required. This error page is served from `/cookies-required/`.
 2. Run the development server:
    ```bash
     python manage.py runserver

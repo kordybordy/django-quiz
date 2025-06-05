@@ -5,6 +5,9 @@ from django.urls import reverse
 import sqlite3
 import random
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = Path(settings.BASE_DIR) / 'pytania_egzaminacyjne.db'
 QUESTION_LIMIT = 150
@@ -22,6 +25,8 @@ def get_random_questions():
 
 def index(request):
     if 'quiz' not in request.session:
+        # Set a test cookie to ensure the browser accepts cookies
+        request.session.set_test_cookie()
         questions = get_random_questions()
         request.session['quiz'] = {
             'questions': questions,
@@ -36,7 +41,19 @@ def index(request):
 def quiz_view(request):
     quiz = request.session.get('quiz')
     if not quiz:
+        if not request.session.test_cookie_worked():
+            logger.debug("Test cookie failed; cookies seem to be disabled.")
+            if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
+                request.session.delete_test_cookie()
+            return redirect('cookies_required')
         return redirect('index')
+
+    if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
+        if not request.session.test_cookie_worked():
+            logger.debug("Test cookie failed during quiz; redirecting to warning page.")
+            request.session.delete_test_cookie()
+            return redirect('cookies_required')
+        request.session.delete_test_cookie()
 
     elapsed = timezone.now().timestamp() - quiz['start_time']
     remaining = QUIZ_DURATION_SECONDS - elapsed
@@ -86,3 +103,8 @@ def result_view(request):
         'score': score,
         'total': total
     })
+
+
+def cookies_required(request):
+    """Display a message that cookies must be enabled."""
+    return render(request, 'quiz/cookies_required.html')
