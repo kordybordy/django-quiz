@@ -22,6 +22,11 @@ the question is moved to the end of the list so you can answer it later.
 
 The project's root URL configuration lives in `quiz_django/urls.py`.
 
+Static files are served automatically when `DEBUG=True`. In production
+you should run `collectstatic` and serve files from the directory defined by
+`STATIC_ROOT` (defaults to `staticfiles/`). The HTML templates reference
+a favicon hosted at <https://www.djangoproject.com/favicon.ico>.
+
 ## Running tests
 
 Execute Django's test suite with:
