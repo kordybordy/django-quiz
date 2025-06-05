@@ -41,15 +41,15 @@ def index(request):
 def quiz_view(request):
     quiz = request.session.get('quiz')
     if not quiz:
+        if not request.session.test_cookie_worked():
+            logger.debug("Test cookie failed; cookies seem to be disabled.")
+            if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
+                request.session.delete_test_cookie()
+            return redirect('cookies_required')
         return redirect('index')
-
-    # Verify that cookies are enabled only if the test cookie is present
-    if request.session.get(request.session.TEST_COOKIE_NAME) is None:
-        return redirect('index')
-    if not request.session.test_cookie_worked():
-        logger.debug("Test cookie failed; cookies seem to be disabled.")
+            request.session.delete_test_cookie()
+            return redirect('cookies_required')
         request.session.delete_test_cookie()
-        return redirect('cookies_required')
 
     elapsed = timezone.now().timestamp() - quiz['start_time']
     remaining = QUIZ_DURATION_SECONDS - elapsed
