@@ -139,3 +139,9 @@ LOGGING = {
         'level': 'DEBUG',
     },
 }
+
+# settings.py
+
+SESSION_COOKIE_SAMESITE = "Lax"
+SESSION_COOKIE_SECURE = False
+SESSION_COOKIE_HTTPONLY = True
