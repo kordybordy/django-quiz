@@ -11,8 +11,11 @@ This project contains a small Django application that serves a multiple-choice q
    The app uses cookie-based sessions, so you don't need to apply migrations.
 2. Run the development server:
    ```bash
-   python manage.py runserver
-   ```
+    python manage.py runserver
+    ```
+
+The quiz interface also lets you skip a question. When you choose to skip,
+the question is moved to the end of the list so you can answer it later.
 
 ## Running tests
 

@@ -47,6 +47,11 @@ def quiz_view(request):
     correct = (q[6] or '').strip().upper()
 
     if request.method == 'POST':
+        if request.POST.get('action') == 'skip':
+            quiz['questions'].append(quiz['questions'].pop(quiz['current']))
+            request.session['quiz'] = quiz
+            return redirect('quiz')
+
         answer = request.POST.get('answer', '')
         if answer == correct:
             quiz['score'] += 1
