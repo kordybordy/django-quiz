@@ -47,10 +47,6 @@ def quiz_view(request):
                 request.session.delete_test_cookie()
             return redirect('cookies_required')
         return redirect('index')
-
-    if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
-        if not request.session.test_cookie_worked():
-            logger.debug("Test cookie failed during quiz; redirecting to warning page.")
             request.session.delete_test_cookie()
             return redirect('cookies_required')
         request.session.delete_test_cookie()
