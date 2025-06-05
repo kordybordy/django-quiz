@@ -27,39 +27,33 @@ def get_random_questions():
 
 
 def index(request):
-    if 'quiz' not in request.session:
-        # Set a test cookie to ensure the browser accepts cookies
-        request.session.set_test_cookie()
-        global _test_cookie_pending
-        _test_cookie_pending = True
-        questions = get_random_questions()
-        request.session['quiz'] = {
-            'questions': questions,
-            'current': 0,
-            'score': 0,
-            'answers': [],
-            'start_time': timezone.now().timestamp()
-        }
+    """Set a test cookie and redirect to cookie check."""
+    request.session.set_test_cookie()
     return redirect('check_cookie')
 
 
 def check_cookie(request):
     """Verify that the browser accepted the test cookie before starting the quiz."""
     global _test_cookie_pending
-    quiz = request.session.get('quiz')
-    if not quiz:
-        _test_cookie_pending = False
-        return redirect('index')
 
     if not request.session.test_cookie_worked():
         logger.debug("Test cookie failed; cookies seem to be disabled.")
-        if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
-            request.session.delete_test_cookie()
+        request.session.delete_test_cookie()
         _test_cookie_pending = False
         return redirect('cookies_required')
 
     request.session.delete_test_cookie()
     _test_cookie_pending = False
+
+    # Ciasteczka działają – utwórz quiz
+    questions = get_random_questions()
+    request.session['quiz'] = {
+        'questions': questions,
+        'current': 0,
+        'score': 0,
+        'answers': [],
+        'start_time': timezone.now().timestamp()
+    }
     return redirect('quiz')
 
 
