@@ -1,4 +1,4 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.urls import reverse
 
 
@@ -20,3 +20,19 @@ class SkipQuestionTests(TestCase):
         session = self.client.session
         self.assertEqual(session['quiz']['current'], 0)
         self.assertEqual(session['quiz']['questions'][-1], first_question)
+
+
+class CookiesRequiredTests(TestCase):
+    def test_first_get_without_cookies_redirects_to_index(self):
+        response = self.client.get('/quiz/')
+        self.assertRedirects(
+            response, reverse('index'), fetch_redirect_response=False
+        )
+
+    def test_missing_cookies_after_index_redirects_to_warning(self):
+        self.client.get('/')
+        new_client = Client()
+        response = new_client.get('/quiz/')
+        self.assertRedirects(
+            response, reverse('cookies_required'), fetch_redirect_response=False
+        )
