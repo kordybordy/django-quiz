@@ -19,7 +19,8 @@
         <label><input type="radio" name="answer" value="B"> B: {{ question.4 }}</label><br>
         <label><input type="radio" name="answer" value="C"> C: {{ question.5 }}</label><br>
         <br>
-        <button type="submit">Zatwierdź odpowiedź</button>
+        <button type="submit" name="action" value="submit">Zatwierdź odpowiedź</button>
+        <button type="submit" name="action" value="skip">Pomiń pytanie</button>
     </form>
 
     <p><strong>Pozostały czas:</strong> {{ time_remaining }}</p>
