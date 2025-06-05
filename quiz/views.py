@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.conf import settings
 import sqlite3
 import random
+from pathlib import Path
 
-DB_PATH = 'pytania_egzaminacyjne.db'
+DB_PATH = Path(settings.BASE_DIR) / 'pytania_egzaminacyjne.db'
 QUESTION_LIMIT = 150
 QUIZ_DURATION_SECONDS = 150 * 60
 
