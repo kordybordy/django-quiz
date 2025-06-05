@@ -1,0 +1,79 @@
+from django.shortcuts import render, redirect
+from django.utils import timezone
+import sqlite3
+import random
+
+DB_PATH = 'pytania_egzaminacyjne.db'
+QUESTION_LIMIT = 150
+QUIZ_DURATION_SECONDS = 150 * 60
+
+
+def get_random_questions():
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    cursor.execute("SELECT rok, numer, tresc, odpowiedz_a, odpowiedz_b, odpowiedz_c, poprawna_odpowiedz, podstawa_prawna FROM pytania")
+    all_questions = cursor.fetchall()
+    conn.close()
+    return random.sample(all_questions, min(QUESTION_LIMIT, len(all_questions)))
+
+
+def index(request):
+    if 'quiz' not in request.session:
+        questions = get_random_questions()
+        request.session['quiz'] = {
+            'questions': questions,
+            'current': 0,
+            'score': 0,
+            'answers': [],
+            'start_time': timezone.now().timestamp()
+        }
+    return redirect('quiz')
+
+
+def quiz_view(request):
+    quiz = request.session.get('quiz')
+    if not quiz:
+        return redirect('index')
+
+    elapsed = timezone.now().timestamp() - quiz['start_time']
+    remaining = QUIZ_DURATION_SECONDS - elapsed
+
+    if remaining <= 0 or quiz['current'] >= len(quiz['questions']):
+        return redirect('result')
+
+    q = quiz['questions'][quiz['current']]
+    correct = (q[6] or '').strip().upper()
+
+    if request.method == 'POST':
+        answer = request.POST.get('answer', '')
+        if answer == correct:
+            quiz['score'] += 1
+        quiz['answers'].append((q, answer, correct))
+        quiz['current'] += 1
+        request.session['quiz'] = quiz
+        return redirect('quiz')
+
+    minutes = int(remaining // 60)
+    seconds = int(remaining % 60)
+
+    return render(request, 'quiz/index.html', {
+        'question_number': quiz['current'] + 1,
+        'total_questions': len(quiz['questions']),
+        'question': q,
+        'time_remaining': f"{minutes:02d}:{seconds:02d}"
+    })
+
+
+def result_view(request):
+    quiz = request.session.get('quiz')
+    if not quiz:
+        return redirect('index')
+
+    score = quiz['score']
+    total = len(quiz['questions'])
+    request.session.pop('quiz', None)
+
+    return render(request, 'quiz/result.html', {
+        'score': score,
+        'total': total
+    })

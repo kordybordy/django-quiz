@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>Pytanie {{ question_number }} z {{ total_questions }}</title>
+</head>
+<body>
+    <!-- Reklama AdSense nad pytaniem -->
+    <div style="margin-bottom: 20px;">
+        <!-- Wklej swój kod AdSense tutaj -->
+    </div>
+
+    <h2>Pytanie {{ question_number }} z {{ total_questions }}</h2>
+    <p>{{ question.2 }}</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <label><input type="radio" name="answer" value="A"> A: {{ question.3 }}</label><br>
+        <label><input type="radio" name="answer" value="B"> B: {{ question.4 }}</label><br>
+        <label><input type="radio" name="answer" value="C"> C: {{ question.5 }}</label><br>
+        <br>
+        <button type="submit">Zatwierdź odpowiedź</button>
+    </form>
+
+    <p><strong>Pozostały czas:</strong> {{ time_remaining }}</p>
+</body>
+</html>
