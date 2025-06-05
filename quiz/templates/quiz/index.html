@@ -13,7 +13,7 @@
     <h2>Pytanie {{ question_number }} z {{ total_questions }}</h2>
     <p>{{ question.2 }}</p>
 
-    <form method="post">
+    <form method="post" action="{% url 'quiz' %}">
         {% csrf_token %}
         <label><input type="radio" name="answer" value="A"> A: {{ question.3 }}</label><br>
         <label><input type="radio" name="answer" value="B"> B: {{ question.4 }}</label><br>
@@ -23,5 +23,50 @@
     </form>
 
     <p><strong>Pozostały czas:</strong> {{ time_remaining }}</p>
+
+    <style>
+        #result-message {
+            position: fixed;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            padding: 20px;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            z-index: 1000;
+        }
+        #result-message.correct { color: green; animation: pop 1s forwards; }
+        #result-message.wrong { color: red; animation: shake 1s forwards; }
+
+        @keyframes pop {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(-50%, -50%) translateX(0); }
+            25% { transform: translate(-50%, -50%) translateX(-10px); }
+            50% { transform: translate(-50%, -50%) translateX(10px); }
+            75% { transform: translate(-50%, -50%) translateX(-10px); }
+            100% { transform: translate(-50%, -50%) translateX(0); }
+        }
+    </style>
+
+    <script>
+        window.addEventListener('DOMContentLoaded', function () {
+            const params = new URLSearchParams(window.location.search);
+            const result = params.get('result');
+            if (result) {
+                const msg = document.createElement('div');
+                msg.id = 'result-message';
+                msg.textContent = result === 'correct' ? '🎉 Dobrze!' : '❌ Zła odpowiedź';
+                msg.className = result;
+                document.body.appendChild(msg);
+                setTimeout(() => msg.remove(), 1200);
+            }
+        });
+    </script>
 </body>
 </html>
