@@ -22,6 +22,8 @@ def get_random_questions():
 
 def index(request):
     if 'quiz' not in request.session:
+        # Set a test cookie to ensure the browser accepts cookies
+        request.session.set_test_cookie()
         questions = get_random_questions()
         request.session['quiz'] = {
             'questions': questions,
@@ -37,6 +39,13 @@ def quiz_view(request):
     quiz = request.session.get('quiz')
     if not quiz:
         return redirect('index')
+
+    # Verify that cookies are enabled only if we previously set a test cookie
+    if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
+        if not request.session.test_cookie_worked():
+            request.session.delete_test_cookie()
+            return redirect('cookies_required')
+        request.session.delete_test_cookie()
 
     elapsed = timezone.now().timestamp() - quiz['start_time']
     remaining = QUIZ_DURATION_SECONDS - elapsed
@@ -86,3 +95,8 @@ def result_view(request):
         'score': score,
         'total': total
     })
+
+
+def cookies_required(request):
+    """Display a message that cookies must be enabled."""
+    return render(request, 'quiz/cookies_required.html')
