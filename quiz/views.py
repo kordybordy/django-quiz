@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.utils import timezone
 from django.conf import settings
+from django.urls import reverse
 import sqlite3
 import random
 from pathlib import Path
@@ -48,12 +49,13 @@ def quiz_view(request):
 
     if request.method == 'POST':
         answer = request.POST.get('answer', '')
-        if answer == correct:
+        result = 'correct' if answer == correct else 'wrong'
+        if result == 'correct':
             quiz['score'] += 1
         quiz['answers'].append((q, answer, correct))
         quiz['current'] += 1
         request.session['quiz'] = quiz
-        return redirect('quiz')
+        return redirect(f"{reverse('quiz')}?result={result}")
 
     minutes = int(remaining // 60)
     seconds = int(remaining % 60)
