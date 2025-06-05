@@ -20,6 +20,8 @@ that cookies are required. This error page is served from `/cookies-required/`.
 The quiz interface also lets you skip a question. When you choose to skip,
 the question is moved to the end of the list so you can answer it later.
 
+The project's root URL configuration lives in `quiz_django/urls.py`.
+
 ## Running tests
 
 Execute Django's test suite with:
