@@ -40,6 +40,26 @@ def index(request):
             'answers': [],
             'start_time': timezone.now().timestamp()
         }
+    return redirect('check_cookie')
+
+
+def check_cookie(request):
+    """Verify that the browser accepted the test cookie before starting the quiz."""
+    global _test_cookie_pending
+    quiz = request.session.get('quiz')
+    if not quiz:
+        _test_cookie_pending = False
+        return redirect('index')
+
+    if not request.session.test_cookie_worked():
+        logger.debug("Test cookie failed; cookies seem to be disabled.")
+        if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
+            request.session.delete_test_cookie()
+        _test_cookie_pending = False
+        return redirect('cookies_required')
+
+    request.session.delete_test_cookie()
+    _test_cookie_pending = False
     return redirect('quiz')
 
 
