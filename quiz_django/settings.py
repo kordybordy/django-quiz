@@ -141,7 +141,28 @@ LOGGING = {
 }
 
 # settings.py
-
-SESSION_COOKIE_SAMESITE = "Lax"
-SESSION_COOKIE_SECURE = False
+# --- Sesje i ciasteczka ---
+SESSION_COOKIE_NAME = "sessionid"
 SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = False  # nie używamy HTTPS lokalnie
+SESSION_COOKIE_SAMESITE = None  # WAŻNE: pozwala na ciasteczka po redirectach
+
+CSRF_COOKIE_SECURE = False
+CSRF_COOKIE_SAMESITE = None
+
+# --- DEBUG logging do terminala ---
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'DEBUG',
+    },
+}
+
+
