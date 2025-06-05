@@ -5,6 +5,9 @@ from django.urls import reverse
 import sqlite3
 import random
 from pathlib import Path
+import logging
+
+logger = logging.getLogger(__name__)
 
 DB_PATH = Path(settings.BASE_DIR) / 'pytania_egzaminacyjne.db'
 QUESTION_LIMIT = 150
@@ -38,11 +41,12 @@ def index(request):
 def quiz_view(request):
     quiz = request.session.get('quiz')
     if not quiz:
-        return redirect('index')
-
-    # Verify that cookies are enabled only if we previously set a test cookie
-    if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
         if not request.session.test_cookie_worked():
+            logger.debug("Test cookie failed; cookies seem to be disabled.")
+            if request.session.get(request.session.TEST_COOKIE_NAME) is not None:
+                request.session.delete_test_cookie()
+            return redirect('cookies_required')
+        return redirect('index')
             request.session.delete_test_cookie()
             return redirect('cookies_required')
         request.session.delete_test_cookie()
